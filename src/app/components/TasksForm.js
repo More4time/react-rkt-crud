@@ -1,39 +1,64 @@
-import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { addTask } from '../../features/tasks/taskSlice'
+import React, { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { addTask,editTask } from '../../features/tasks/taskSlice'
 import { v4 as uuid } from 'uuid'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 function TasksForm() {
 
   const [task, setTask] = useState({
-    title:"",
+    title: "",
     description: "",
   })
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const params = useParams()
+  const tasks = useSelector(state => state.tasks)
 
-  const handleChange = e =>{
+  const handleChange = e => {
     setTask({
       ...task,
       [e.target.name]: e.target.value
     })
   }
 
-  const handleSubmit = (e) =>{
+  const handleSubmit = (e) => {
     e.preventDefault()
-    dispatch(addTask({
-      ...task,
-      id: uuid(),
-    }))
-    navigate("/")
+    if(params.id){
+      dispatch(editTask(task))
+    }else{
+      dispatch(
+        addTask({
+          ...task,
+          id:uuid(),
+        })
+      );
+    }
+    navigate("/");
   }
+
+  useEffect(() => {
+    if (params.id) {
+      setTask(tasks.find((task) => task.id === params.id))
+    }
+  }, [])
 
   return (
     <form onSubmit={handleSubmit}>
-      <input name='title' type="text" placeholder='title' onChange={handleChange} />
-      <textarea name='description' placeholder='description' onChange={handleChange}></textarea>
+      <input 
+      name='title' 
+      type="text" 
+      placeholder='title' 
+      onChange={handleChange} 
+      value= {task.title} 
+      />
+      <textarea 
+      name='description' 
+      placeholder='description' 
+      onChange={handleChange} 
+      value={task.description}
+      ></textarea>
       <button>Save</button>
     </form>
   )
